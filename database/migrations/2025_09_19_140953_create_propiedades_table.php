@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('detalle');
             $table->text('descripcion');
-            $table->foreignId('ciudad_id')->constrained();
+            $table->foreignId('ciudad_id')->constrained('ciudades');
             $table->integer('habitaciones');
             $table->integer('banios');
             $table->enum('tipo_transaccion', ['arriendo', 'venta']);

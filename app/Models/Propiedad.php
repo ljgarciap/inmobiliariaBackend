@@ -9,6 +9,8 @@ class Propiedad extends Model
 {
     use HasFactory;
 
+    protected $table = 'propiedades';
+
     protected $fillable = [
         'detalle',
         'descripcion',
@@ -48,8 +50,8 @@ class Propiedad extends Model
 
     public function getPrecio()
     {
-        return $this->tipo_transaccion === 'arriendo' 
-            ? $this->precio_arriendo 
+        return $this->tipo_transaccion === 'arriendo'
+            ? $this->precio_arriendo
             : $this->precio_venta;
     }
 }

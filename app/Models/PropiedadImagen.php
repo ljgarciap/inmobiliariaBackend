@@ -9,6 +9,8 @@ class PropiedadImagen extends Model
 {
     use HasFactory;
 
+    protected $table = 'propiedad_imagenes';
+
     protected $fillable = [
         'propiedad_id',
         'ruta_imagen',

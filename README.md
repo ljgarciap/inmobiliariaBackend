@@ -2,18 +2,26 @@
 
 # Consideraciones previas
 
+## Instalar Dependencias
+
+composer install
+
 Tener en cuenta que se está usando passport para la autenticación; por ello hay que pasar por el siguiente proceso:
 
 ## Instalar Passport
+
 php artisan passport:install
 
 ## Generar las claves de encriptación
+
 php artisan passport:keys
 
 ## Ejecutar migraciones
+
 php artisan migrate
 
 ## Ejecutar seeders
+
 php artisan db:seed
 
 ### Premium Partners
