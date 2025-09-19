@@ -13,8 +13,12 @@ return new class extends Migration
     {
         Schema::create('propiedades_caracteristicas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('propiedad_id')->constrained('propiedades');
-            $table->foreignId('caracteristica_id')->constrained('caracteristicas');
+            $table->foreignId('propiedad_id')
+                ->constrained('propiedades')
+                ->onDelete('cascade');
+            $table->foreignId('caracteristica_id')
+                ->constrained('caracteristicas')
+                ->onDelete('cascade');
             $table->timestamps();
         });
     }

@@ -21,8 +21,17 @@ class PropiedadResource extends JsonResource
             'precio_arriendo' => $this->precio_arriendo,
             'precio_venta' => $this->precio_venta,
             'caracteristicas' => $this->caracteristicas->pluck('nombre'),
-            'imagenes' => $this->imagenes->pluck('ruta_imagen'),
-            'imagen_principal' => $this->imagenes->where('principal', true)->first()->ruta_imagen ?? null,
+            'imagenes' => $this->imagenes->map(function ($imagen) {
+                return [
+                    'id' => $imagen->id,
+                    'url' => asset('storage/propiedades/' . $imagen->ruta_imagen),
+                    'principal' => $imagen->principal,
+                    'ruta_imagen' => $imagen->ruta_imagen
+                ];
+            }),
+            'imagen_principal' => $this->imagenes->where('principal', true)->first()
+            ? asset('storage/propiedades/' . $this->imagenes->where('principal', true)->first()->ruta_imagen)
+            : null,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

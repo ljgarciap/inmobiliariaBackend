@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('propiedad_imagenes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('propiedad_id')->constrained('propiedades');
+            $table->foreignId('propiedad_id')
+                ->constrained('propiedades')
+                ->onDelete('cascade');
             $table->string('ruta_imagen');
             $table->boolean('principal')->default(false);
             $table->timestamps();

@@ -31,7 +31,6 @@ class Propiedad extends Model
         'precio_venta' => 'decimal:2'
     ];
 
-    // Accessor para el precio calculado
     protected $appends = ['precio'];
 
     public function getPrecioAttribute()

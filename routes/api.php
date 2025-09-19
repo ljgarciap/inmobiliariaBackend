@@ -16,22 +16,20 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Rutas públicas de autenticación
+// Rutas públicas
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-// Rutas públicas de propiedades
 Route::get('/propiedades', [PropiedadController::class, 'index']);
 Route::get('/propiedades/{propiedad}', [PropiedadController::class, 'show']);
 
 // Rutas protegidas con autenticación
 Route::middleware('auth:api')->group(function () {
-    // Rutas de autenticación
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
 
-    // Rutas de gestión de propiedades
     Route::post('/propiedades', [PropiedadController::class, 'store']);
     Route::put('/propiedades/{propiedad}', [PropiedadController::class, 'update']);
     Route::delete('/propiedades/{propiedad}', [PropiedadController::class, 'destroy']);
+    Route::post('/propiedades/{propiedad}/imagenes', [PropiedadController::class, 'agregarImagenes']);
 });

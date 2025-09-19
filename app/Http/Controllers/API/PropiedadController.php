@@ -5,19 +5,19 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PropiedadResource;
 use App\Models\Propiedad;
+use App\Models\PropiedadImagen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 class PropiedadController extends Controller
 {
     public function index(Request $request)
     {
-        // Cache key basada en los parámetros de filtro
-        $cacheKey = 'propiedades_' . md5(serialize($request->all()));
+        // $cacheKey = 'propiedades_' . md5(serialize($request->all()));
 
-        // Intentar obtener del cache, sino ejecutar la consulta
-        $propiedades = Cache::remember($cacheKey, 3600, function () use ($request) {
+        //$propiedades = Cache::remember($cacheKey, 3600, function () use ($request) {
             $query = Propiedad::with(['ciudad', 'caracteristicas', 'imagenes', 'user']);
 
             // Filtro por ciudad
@@ -62,8 +62,12 @@ class PropiedadController extends Controller
                 });
             }
 
-            return $query->orderBy('created_at', 'desc')->paginate(12);
-        });
+            $propiedades = $query->orderBy('created_at', 'desc')->paginate(12);
+
+            return PropiedadResource::collection($propiedades);
+
+            //return $query->orderBy('created_at', 'desc')->paginate(12);
+        // });
 
         return PropiedadResource::collection($propiedades);
     }
@@ -82,7 +86,7 @@ class PropiedadController extends Controller
             'caracteristicas' => 'array',
             'caracteristicas.*' => 'exists:caracteristicas,id',
             'imagenes' => 'array',
-            'imagenes.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'imagenes.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ]);
 
         if ($validator->fails()) {
@@ -101,18 +105,15 @@ class PropiedadController extends Controller
             'user_id' => auth()->id(),
         ]);
 
-        // Sincronizar características
         if ($request->has('caracteristicas')) {
             $propiedad->caracteristicas()->sync($request->caracteristicas);
         }
 
-        // Procesar imágenes
         if ($request->hasFile('imagenes')) {
-            // TODO Lógica para guardar imágenes
+            $this->guardarImagenes($propiedad, $request->file('imagenes'));
         }
 
-        // Limpiar cache de propiedades
-        Cache::flush();
+        //Cache::flush();
 
         return new PropiedadResource($propiedad->load(['ciudad', 'caracteristicas', 'imagenes']));
     }
@@ -139,6 +140,10 @@ class PropiedadController extends Controller
         'precio_venta' => 'required_if:tipo_transaccion,venta|nullable|numeric|min:0',
         'caracteristicas' => 'sometimes|array',
         'caracteristicas.*' => 'exists:caracteristicas,id',
+        'imagenes' => 'sometimes|array',
+        'imagenes.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        'eliminar_imagenes' => 'sometimes|array',
+        'eliminar_imagenes.*' => 'exists:propiedad_imagenes,id',
     ]);
 
     if ($validator->fails()) {
@@ -165,23 +170,82 @@ class PropiedadController extends Controller
         $propiedad->caracteristicas()->sync($request->caracteristicas);
     }
 
-    Cache::flush();
+    if ($request->has('eliminar_imagenes')) {
+        $this->eliminarImagenes($request->eliminar_imagenes);
+    }
+
+    if ($request->hasFile('imagenes')) {
+        $this->guardarImagenes($propiedad, $request->file('imagenes'));
+    }
+
+    //Cache::flush();
 
     return new PropiedadResource($propiedad->load(['ciudad', 'caracteristicas', 'imagenes']));
     }
 
     public function destroy(Propiedad $propiedad)
     {
-        // Verificar que el usuario es el propietario
         if ($propiedad->user_id !== auth()->id()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
+        foreach ($propiedad->imagenes as $imagen) {
+            Storage::disk('propiedades')->delete($imagen->ruta_imagen);
+            $imagen->delete();
+        }
+
         $propiedad->delete();
 
-        // Limpiar cache de propiedades
-        Cache::flush();
+        //Cache::flush();
 
         return response()->json(['message' => 'Propiedad eliminada correctamente']);
+    }
+
+    private function guardarImagenes(Propiedad $propiedad, array $imagenes)
+    {
+        foreach ($imagenes as $index => $imagen) {
+
+            $nombreArchivo = time() . '_' . uniqid() . '.' . $imagen->getClientOriginalExtension();
+
+            $ruta = $imagen->storeAs('', $nombreArchivo, 'propiedades');
+
+            $esPrincipal = $index === 0 && $propiedad->imagenes->where('principal', true)->isEmpty();
+
+            PropiedadImagen::create([
+                'propiedad_id' => $propiedad->id,
+                'ruta_imagen' => $ruta,
+                'principal' => $esPrincipal
+            ]);
+        }
+    }
+
+    private function eliminarImagenes(array $imagenIds)
+    {
+        $imagenes = PropiedadImagen::whereIn('id', $imagenIds)->get();
+
+        foreach ($imagenes as $imagen) {
+            Storage::disk('propiedades')->delete($imagen->ruta_imagen);
+            $imagen->delete();
+        }
+    }
+
+    public function agregarImagenes(Request $request, Propiedad $propiedad)
+    {
+        $validator = Validator::make($request->all(), [
+            'imagenes' => 'required|array',
+            'imagenes.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        if ($propiedad->user_id !== auth()->id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $this->guardarImagenes($propiedad, $request->file('imagenes'));
+
+        return new PropiedadResource($propiedad->load(['ciudad', 'caracteristicas', 'imagenes']));
     }
 }

@@ -15,13 +15,17 @@ return new class extends Migration
             $table->id();
             $table->string('detalle');
             $table->text('descripcion');
-            $table->foreignId('ciudad_id')->constrained('ciudades');
+            $table->foreignId('ciudad_id')
+                ->constrained('ciudades')
+                ->onDelete('restrict');
             $table->integer('habitaciones');
             $table->integer('banios');
             $table->enum('tipo_transaccion', ['arriendo', 'venta']);
             $table->decimal('precio_arriendo', 12, 2)->nullable();
             $table->decimal('precio_venta', 12, 2)->nullable();
-            $table->foreignId('user_id')->constrained();
+            $table->foreignId('user_id')
+                ->constrained()
+                ->onDelete('cascade');
             $table->timestamps();
         });
     }
