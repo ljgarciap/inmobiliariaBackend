@@ -7,23 +7,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Laravel\Passport\Client as PassportClient;
 
 class AuthController extends Controller
 {
-    private $client;
-
-    public function __construct()
-    {
-        $this->client = PassportClient::where('password_client', true)->first();
-    }
-
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:5|confirmed',
         ]);
 
         if ($validator->fails()) {
@@ -36,7 +28,6 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        // Crear token de acceso personal
         $token = $user->createToken('RealEstateApp')->accessToken;
 
         return response()->json([
@@ -48,10 +39,18 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        if (Auth::guard('web')->attempt($request->only('email', 'password'))) {
+            $user = Auth::guard('web')->user();
+
             $token = $user->createToken('RealEstateApp')->accessToken;
 
             return response()->json([
@@ -67,6 +66,9 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $request->user()->token()->revoke();
+
+        Auth::guard('web')->logout();
+
         return response()->json(['message' => 'Successfully logged out']);
     }
 

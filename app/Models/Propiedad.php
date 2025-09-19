@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Propiedad extends Model
 {
@@ -28,14 +31,24 @@ class Propiedad extends Model
         'precio_venta' => 'decimal:2'
     ];
 
+    // Accessor para el precio calculado
+    protected $appends = ['precio'];
+
+    public function getPrecioAttribute()
+    {
+        return $this->tipo_transaccion === 'arriendo'
+            ? $this->precio_arriendo
+            : $this->precio_venta;
+    }
+
     public function ciudad(): BelongsTo
     {
-        return $this->belongsTo(ciudad::class);
+        return $this->belongsTo(Ciudad::class);
     }
 
     public function caracteristicas(): BelongsToMany
     {
-        return $this->belongsToMany(Caracteristica::class);
+        return $this->belongsToMany(Caracteristica::class, 'propiedades_caracteristicas');
     }
 
     public function imagenes(): HasMany
@@ -46,12 +59,5 @@ class Propiedad extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function getPrecio()
-    {
-        return $this->tipo_transaccion === 'arriendo'
-            ? $this->precio_arriendo
-            : $this->precio_venta;
     }
 }
