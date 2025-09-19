@@ -10,9 +10,11 @@ php artisan passport:install
 ## Generar las claves de encriptación
 php artisan passport:keys
 
-## Laravel Sponsors
+## Ejecutar migraciones
+php artisan migrate
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Ejecutar seeders
+php artisan db:seed
 
 ### Premium Partners
 
