@@ -17,7 +17,6 @@ class Caracteristica extends Model
 
     public function propiedades(): BelongsToMany
     {
-        // CORREGIR: Especificar la tabla pivote
         return $this->belongsToMany(Propiedad::class, 'propiedades_caracteristicas');
     }
 }

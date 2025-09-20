@@ -33,6 +33,14 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
 
+    Route::post('/ciudades', [CiudadController::class, 'store']);
+    Route::put('/ciudades/{ciudad}', [CiudadController::class, 'update']);
+    Route::delete('/ciudades/{ciudad}', [CiudadController::class, 'destroy']);
+
+    Route::post('/caracteristicas', [CaracteristicaController::class, 'store']);
+    Route::put('/caracteristicas/{caracteristica}', [CaracteristicaController::class, 'update']);
+    Route::delete('/caracteristicas/{caracteristica}', [CaracteristicaController::class, 'destroy']);
+
     Route::post('/propiedades', [PropiedadController::class, 'store']);
     Route::put('/propiedades/{propiedad}', [PropiedadController::class, 'update']);
     Route::delete('/propiedades/{propiedad}', [PropiedadController::class, 'destroy']);

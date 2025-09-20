@@ -17,8 +17,6 @@ class CaracteristicaSeeder extends Seeder
             ['nombre' => 'Piscina', 'icono' => 'pool'],
             ['nombre' => 'Ascensor', 'icono' => 'elevator'],
             ['nombre' => 'Parqueadero', 'icono' => 'parking'],
-            ['nombre' => 'Zona Verde', 'icono' => 'green_area'],
-            ['nombre' => 'Seguridad 24/7', 'icono' => 'security'],
             ['nombre' => 'Gimnasio', 'icono' => 'gym'],
             ['nombre' => 'Jacuzzi', 'icono' => 'jacuzzi'],
         ];
