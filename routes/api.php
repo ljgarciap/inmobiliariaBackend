@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\PropiedadController;
+use App\Http\Controllers\API\CiudadController;
+use App\Http\Controllers\API\CaracteristicaController;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +25,8 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::get('/propiedades', [PropiedadController::class, 'index']);
 Route::get('/propiedades/{propiedad}', [PropiedadController::class, 'show']);
+Route::get('/ciudades', [CiudadController::class, 'index']);
+Route::get('/caracteristicas', [CaracteristicaController::class, 'index']);
 
 // Rutas protegidas con autenticación
 Route::middleware('auth:api')->group(function () {
