@@ -13,64 +13,79 @@ use Illuminate\Support\Facades\Storage;
 
 class PropiedadController extends Controller
 {
-    public function index(Request $request)
-    {
-        // $cacheKey = 'propiedades_' . md5(serialize($request->all()));
+    public function index(Request $request){
 
-        //$propiedades = Cache::remember($cacheKey, 3600, function () use ($request) {
-            $query = Propiedad::with(['ciudad', 'caracteristicas', 'imagenes', 'user']);
+    $query = Propiedad::with(['ciudad', 'caracteristicas', 'imagenes', 'user']);
 
-            // Filtro por ciudad
-            if ($request->has('ciudad_id')) {
-                $query->where('ciudad_id', $request->ciudad_id);
-            }
-
-            // Filtro por tipo de transacción
-            if ($request->has('tipo_transaccion')) {
-                $query->where('tipo_transaccion', $request->tipo_transaccion);
-            }
-
-            // Filtro por rango de precio
-            if ($request->has('precio_minimo') && $request->has('precio_maximo')) {
-                $priceField = $request->tipo_transaccion === 'arriendo'
-                    ? 'precio_arriendo'
-                    : 'precio_venta';
-
-                $query->whereBetween($priceField, [
-                    $request->precio_minimo,
-                    $request->precio_maximo
-                ]);
-            }
-
-            // Filtro por número de habitaciones (búsqueda múltiple)
-            if ($request->has('habitaciones')) {
-                $habitaciones = is_array($request->habitaciones)
-                    ? $request->habitaciones
-                    : explode(',', $request->habitaciones);
-
-                $query->whereIn('habitaciones', $habitaciones);
-            }
-
-            // Filtro por características
-            if ($request->has('caracteristicas')) {
-                $caracteristicas = is_array($request->caracteristicas)
-                    ? $request->caracteristicas
-                    : explode(',', $request->caracteristicas);
-
-                $query->whereHas('caracteristicas', function ($q) use ($caracteristicas) {
-                    $q->whereIn('caracteristicas.id', $caracteristicas);
-                });
-            }
-
-            $propiedades = $query->orderBy('created_at', 'desc')->paginate(12);
-
-            return PropiedadResource::collection($propiedades);
-
-            //return $query->orderBy('created_at', 'desc')->paginate(12);
-        // });
-
-        return PropiedadResource::collection($propiedades);
+    // Filtro por ciudad (mantener igual)
+    if ($request->has('ciudad_id') && $request->ciudad_id != '') {
+        $query->where('ciudad_id', $request->ciudad_id);
     }
+
+    // Filtro por tipo de transacción (mantener igual)
+    if ($request->has('tipo_transaccion')) {
+        $query->where('tipo_transaccion', $request->tipo_transaccion);
+    }
+
+    // Filtro por rango de precio - NUEVA VERSIÓN CORREGIDA
+    if ($request->has('precio_minimo') || $request->has('precio_maximo')) {
+        // Si hay tipo_transaccion definido, usar el campo correspondiente
+        if ($request->has('tipo_transaccion')) {
+            $priceField = $request->tipo_transaccion === 'arriendo'
+                ? 'precio_arriendo'
+                : 'precio_venta';
+
+            if ($request->has('precio_minimo')) {
+                $query->where($priceField, '>=', $request->precio_minimo);
+            }
+            if ($request->has('precio_maximo')) {
+                $query->where($priceField, '<=', $request->precio_maximo);
+            }
+        } else {
+            // Si no hay tipo_transaccion, buscar en ambos campos
+            $query->where(function ($q) use ($request) {
+                // Precio mínimo
+                if ($request->has('precio_minimo')) {
+                    $q->where(function ($subQ) use ($request) {
+                        $subQ->where('precio_arriendo', '>=', $request->precio_minimo)
+                             ->orWhere('precio_venta', '>=', $request->precio_minimo);
+                    });
+                }
+
+                // Precio máximo
+                if ($request->has('precio_maximo')) {
+                    $q->where(function ($subQ) use ($request) {
+                        $subQ->where('precio_arriendo', '<=', $request->precio_maximo)
+                             ->orWhere('precio_venta', '<=', $request->precio_maximo);
+                    });
+                }
+            });
+        }
+    }
+
+    // Filtro por número de habitaciones (mantener igual)
+    if ($request->has('habitaciones')) {
+        $habitaciones = is_array($request->habitaciones)
+            ? $request->habitaciones
+            : explode(',', $request->habitaciones);
+
+        $query->whereIn('habitaciones', $habitaciones);
+    }
+
+    // Filtro por características (mantener igual)
+    if ($request->has('caracteristicas')) {
+        $caracteristicas = is_array($request->caracteristicas)
+            ? $request->caracteristicas
+            : explode(',', $request->caracteristicas);
+
+        $query->whereHas('caracteristicas', function ($q) use ($caracteristicas) {
+            $q->whereIn('caracteristicas.id', $caracteristicas);
+        });
+    }
+
+    $propiedades = $query->orderBy('created_at', 'desc')->paginate(12);
+    return PropiedadResource::collection($propiedades);
+}
 
     public function store(Request $request)
     {
