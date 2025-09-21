@@ -45,4 +45,5 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/propiedades/{propiedad}', [PropiedadController::class, 'update']);
     Route::delete('/propiedades/{propiedad}', [PropiedadController::class, 'destroy']);
     Route::post('/propiedades/{propiedad}/imagenes', [PropiedadController::class, 'agregarImagenes']);
+    Route::delete('/propiedades/{propiedad}/imagenes/{imagenId}', [PropiedadController::class, 'eliminarImagen']);
 });

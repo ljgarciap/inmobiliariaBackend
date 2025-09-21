@@ -23,6 +23,9 @@ return new class extends Migration
             $table->enum('tipo_transaccion', ['arriendo', 'venta']);
             $table->decimal('precio_arriendo', 12, 2)->nullable();
             $table->decimal('precio_venta', 12, 2)->nullable();
+            $table->decimal('latitud', 10, 8)->nullable()->after('precio_venta');
+            $table->decimal('longitud', 11, 8)->nullable()->after('latitud');
+            $table->string('direccion_completa')->nullable()->after('longitud');
             $table->foreignId('user_id')
                 ->constrained()
                 ->onDelete('cascade');

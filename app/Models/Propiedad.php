@@ -23,7 +23,10 @@ class Propiedad extends Model
         'tipo_transaccion',
         'precio_arriendo',
         'precio_venta',
-        'user_id'
+        'user_id',
+        'latitud',
+        'longitud',
+        'direccion_completa'
     ];
 
     protected $casts = [

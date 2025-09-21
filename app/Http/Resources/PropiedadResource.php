@@ -20,6 +20,9 @@ class PropiedadResource extends JsonResource
             'precio' => $this->precio,
             'precio_arriendo' => $this->precio_arriendo,
             'precio_venta' => $this->precio_venta,
+            'latitud' => $this->latitud,
+            'longitud' => $this->longitud,
+            'direccion_completa' => $this->direccion_completa,
             'caracteristicas' => $this->caracteristicas->pluck('nombre'),
             'imagenes' => $this->imagenes->map(function ($imagen) {
                 return [
